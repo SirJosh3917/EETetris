@@ -7,16 +7,22 @@ EETetris, a monogame application to play tetris in a style that looks like EE. B
 2) Know your hotkeys
 
 To make the tetris piece move left/right,
-<-- A | D -->
+<-- A | D --> (Arrow keys apply)
 
 To rotate the piece left ( 90 degrees counterclockwise )
-W
+Q
 
 To rotate the piece right ( 90 degrees clockwise )
-S
+E
 
 To convert the board from BETA style to BASIC stlye,
-Q
+L
 
 To swap out the piece on the board for your held piece,
 C
+
+To instant drop
+SPACE
+
+To fastly drop
+S
