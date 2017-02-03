@@ -9,15 +9,19 @@ namespace EETetris
 	/// </summary>
 	public class Game1 : Game
 	{
+
+
 		#region Variables
 		GraphicsDeviceManager graphics;
 		SpriteBatch spriteBatch;
 		Texture2D gui;
 		Texture2D[] blocks;
+		SpriteFont text;
 		Rectangle gui_rect;
-		bool[] keys;
 		int x;
 		int y;
+
+		int score = 0;
 
 		bool[,] screen;
 		int[,] col;
@@ -37,7 +41,7 @@ namespace EETetris
 		float currentTime = 0f;
 
 		int __using = 0;
-		int usingPiece { get { return __using; } set { __using = value; SetBlock(value); x = 5; y = 0; } }
+		int usingPiece { get { return __using; } set { __using = value; SetBlock(value); x = 4; y = 0; } }
 		int held = 0;
 
 		System.Random r;
@@ -119,15 +123,25 @@ namespace EETetris
 							col[curX, curY] = blockCol;
 						}
 
-				x = 5;
+				x = 4;
 				y = 0;
 
 				//Reset piece type
 				SetBlock(r.Next(0, pieces.GetLength(0)));
 
+				int multiplier = 0;
+
 				bool looking = true;
 				while (looking)
 				{
+					if (multiplier != 0)
+					{
+						if (multiplier == 1)
+							score += 100;
+						else
+							score += 200 * multiplier;
+					}
+
 					looking = false;
 
 					//Check if there are any full lines
@@ -149,9 +163,20 @@ namespace EETetris
 									screen[xp, yx] = screen[xp, yx - 1];
 								}
 							looking = true;
+							multiplier++;
 						}
 					}
 				}
+
+				for (int i = 0; i < block.GetLength(0); i++)
+					for(int s = 0; s < block.GetLength(1); s++)
+						if(block[i, s]) //If blocks overlap, then we'll restart
+							if (screen[x + i, y + s] == block[i, s])
+							{
+								Hotkeys.AddScore(score);
+								DoInit();
+								return go;
+							}
 			}
 
 			return go;
@@ -187,12 +212,23 @@ namespace EETetris
 		/// </summary>
 		protected override void Initialize()
 		{
+			DoInit();
+
+			base.Initialize();
+		}
+
+		public void DoInit()
+		{
+
 			#region Random
 			//Init random & seeds
 			r = new System.Random();
 			r.Next(0, 1000);
 			#endregion
 
+			score = 0;
+
+			Hotkeys.Init();
 
 			// TODO: Add your initialization logic here
 			//288 x 352
@@ -200,15 +236,9 @@ namespace EETetris
 			graphics.PreferredBackBufferHeight = 352;
 			graphics.ApplyChanges();
 
-			x = 0;
+			x = 4;
 			y = 0;
 			held = -1;
-
-			#region Init keys
-			keys = new bool[8];
-			for (int i = 0; i < keys.Length; i++)
-				keys[i] = true;
-			#endregion
 
 			#region Init screen blocks
 			screen = new bool[10, 20];
@@ -232,7 +262,7 @@ namespace EETetris
 			pieces = new bool[7, 4, 4];
 			cols = new int[pieces.GetLength(0)];
 			#region Set colors
-			for (int n = 0; n < cols.GetLength(0); n++ )
+			for (int n = 0; n < cols.GetLength(0); n++)
 				switch (n)
 				{
 					case 0:
@@ -300,12 +330,12 @@ namespace EETetris
 						pieces[n, 2, 2] = true;
 						break;
 					case 5:
-						for (int i = 0; i < 4; i++ )
+						for (int i = 0; i < 4; i++)
 							pieces[n, 1, i] = true;
 						break;
 					case 6:
 						pieces[n, 2, 1] = true;
-						for (int i = 1; i < 4; i++ )
+						for (int i = 1; i < 4; i++)
 							pieces[n, i, 2] = true;
 						break;
 				}
@@ -314,8 +344,6 @@ namespace EETetris
 
 			//The original game sets the first block to square
 			SetBlock(0);
-
-			base.Initialize();
 		}
 
 		/// <summary>
@@ -413,6 +441,8 @@ namespace EETetris
 			gui = Content.Load<Texture2D>("gui");
 			gui_rect = new Rectangle(0, 0, gui.Width, gui.Height);
 
+			text = Content.Load<SpriteFont>("chat");
+
 			//Get the blocks
 			Texture2D blockUse = Content.Load<Texture2D>("blocks");
 
@@ -460,137 +490,100 @@ namespace EETetris
 			}
 			 */
 
-			#region Q ( Switch between BETA and BASIC )
-			if (k.IsKeyDown(Keys.Q))
+			#region Switch between BETA and BASIC
+			if (Hotkeys.HandleKeyPress(Hotkeys.BetaBasic(k), 0))
 			{
-				if (keys[6])
+				//Switch everything by 8 to get basic/beta
+				if (graphicBeta)
 				{
-					keys[6] = false;
+					heldBlockCol += 8;
+					blockCol += 8;
+				}
+				else
+				{
+					heldBlockCol -= 8;
+					blockCol -= 8;
+				}
 
-					//Switch everything by 8 to get basic/beta
+				for (int i = 0; i < cols.Length; i++)
+				{
 					if (graphicBeta)
-					{
-						heldBlockCol += 8;
-						blockCol += 8;
-					}
+						cols[i] = cols[i] + 8;
 					else
-					{
-						heldBlockCol -= 8;
-						blockCol -= 8;
-					}
+						cols[i] = cols[i] - 8;
+				}
 
-					for (int i = 0; i < cols.Length; i++)
-					{
+				for (int i = 0; i < col.GetLength(0); i++)
+					for (int s = 0; s < col.GetLength(1); s++)
 						if (graphicBeta)
-							cols[i] = cols[i] + 8;
+							col[i, s] = col[i, s] + 8;
 						else
-							cols[i] = cols[i] - 8;
-					}
+							col[i, s] = col[i, s] - 8;
 
-					for (int i = 0; i < col.GetLength(0); i++)
-						for (int s = 0; s < col.GetLength(1); s++)
-							if (graphicBeta)
-								col[i, s] = col[i, s] + 8;
-							else
-								col[i, s] = col[i, s] - 8;
-
-					graphicBeta = !graphicBeta;
-				}
+				graphicBeta = !graphicBeta;
 			}
-			else keys[6] = true;
 			#endregion
 
-			#region W [ ROTATE LEFT]
-			if (k.IsKeyDown(Keys.W))
-			{
-				if (keys[3])
-				{
-					keys[3] = false;
-
-					Rotate(1);
-				}
-			}
-			else keys[3] = true;
+			#region ROTATE LEF
+			if (Hotkeys.HandleKeyPress(Hotkeys.RotateLeft(k), 1))
+				Rotate(1);
 			#endregion
 
-			#region S [ ROTATE RIGHT ]
-			if (k.IsKeyDown(Keys.S))
-			{
-				if (keys[5])
-				{
-					keys[5] = false;
+			#region ROTATE RIGHT
+			if (Hotkeys.HandleKeyPress(Hotkeys.RotateRight(k), 2))
+				Rotate(3);
+			#endregion
 
-					Rotate(3);
-				}
-			}
-			else keys[5] = true;
+			#region FASTER FALLING
+			if (k.IsKeyDown(Keys.S) || k.IsKeyDown(Keys.Down)) countDuration = 0.1f; else countDuration = 1f;
 			#endregion
 
 			#region C [ SWITCH HELD TO HOTBAR ]
-			if (k.IsKeyDown(Keys.C))
-			{
-				if (keys[4])
-				{
-					keys[4] = false;
-
-					SwitchHeld();
-				}
-			}
-			else keys[4] = true;
+			if (Hotkeys.HandleKeyPress(Hotkeys.HoldSlot(k), 4))
+				SwitchHeld();
 			#endregion
 
-			if (k.IsKeyDown(Keys.D))
+			if (Hotkeys.HandleKeyPress(Hotkeys.TetrisRight(k), 5))
 			{
-				if (keys[1])
-				{
-					keys[1] = false;
+				bool go = true;
 
-					bool go = true;
+				for (int i = 0; i < block.GetLength(0); i++)
+					for (int s = 0; s < block.GetLength(1); s++)
+						if (block[i, s])
+						{
+							int curX = x + i;
+							int curY = y + s;
 
-					for (int i = 0; i < block.GetLength(0); i++)
-						for (int s = 0; s < block.GetLength(1); s++)
-							if (block[i, s])
-							{
-								int curX = x + i;
-								int curY = y + s;
+							if (curX + 1 > 9)
+								go = false;
+							else if (screen[curX + 1, curY])
+								go = false;
+						}
 
-								if (curX + 1 > 9)
-									go = false;
-								else if (screen[curX + 1, curY])
-									go = false;
-							}
-
-					if (go)
-						x += 1;
-				}
+				if (go)
+					x += 1;
 			}
-			else keys[1] = true;
 
-			if (k.IsKeyDown(Keys.A))
+			if (Hotkeys.HandleKeyPress(Hotkeys.TetrisLeft(k), 6))
 			{
-				if (keys[0])
-				{
-					keys[0] = false;
-					bool go = true;
+				bool go = true;
 
-					for (int i = 0; i < block.GetLength(0); i++)
-						for (int s = 0; s < block.GetLength(1); s++)
-							if (block[i, s])
-							{
-								int curX = x + i;
-								int curY = y + s;
+				for (int i = 0; i < block.GetLength(0); i++)
+					for (int s = 0; s < block.GetLength(1); s++)
+						if (block[i, s])
+						{
+							int curX = x + i;
+							int curY = y + s;
 
-								if (curX - 1 < 0)
-									go = false;
-								else if (screen[curX - 1, curY])
-									go = false;
-							}
+							if (curX - 1 < 0)
+								go = false;
+							else if (screen[curX - 1, curY])
+								go = false;
+						}
 
-					if (go)
-						x -= 1;
-				}
+				if (go)
+					x -= 1;
 			}
-			else keys[0] = true;
 
 			currentTime += (float)gameTime.ElapsedGameTime.TotalSeconds; //Time passed since last Update()
 
@@ -600,18 +593,11 @@ namespace EETetris
 				IncreaseY();
 			}
 
-			if (k.IsKeyDown(Keys.Space))
-			{
-				if (keys[2])
-				{
-					keys[2] = false;
+			if (Hotkeys.HandleKeyPress(Hotkeys.InstantDrop(k), 7))
 					while (IncreaseY())
 					{
 						//Keep increasing untill the tetris piece has fallen and hit the board.
 					}
-				}
-			}
-			else keys[2] = true;
 
 			base.Update(gameTime);
 		}
@@ -646,6 +632,8 @@ namespace EETetris
 				for (int s = 0; s < heldBlock.GetLength(1); s++)
 					if (heldBlock[i, s])
 						spriteBatch.Draw(blocks[heldBlockCol], new Rectangle((i * 16) + (16 * 13), (s * 16) + (16 * 16), 16, 16), Color.White);
+
+			spriteBatch.DrawString(text, score.ToString(), new Vector2(12 * 16, (13 * 16) - 2), Color.White);
 
 			spriteBatch.End();
 			base.Draw(gameTime);

@@ -35,3 +35,9 @@
 /processorParam:TextureFormat=Color
 /build:blocks.png
 
+#begin chat.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:TextureFormat=Compressed
+/build:chat.spritefont
+

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SourceFile>C:/Users/SirJosh3917/Documents/Visual Studio 2013/Projects/EETetris/EETetris/EETetris/Content/chat.spritefont</SourceFile>
+  <SourceTime>2017-02-02T23:00:03.8459-05:00</SourceTime>
+  <DestFile>C:/Users/SirJosh3917/Documents/Visual Studio 2013/Projects/EETetris/EETetris/EETetris/Content/bin/Windows/chat.xnb</DestFile>
+  <DestTime>2017-02-02T23:01:13.0609-05:00</DestTime>
+  <Importer>FontDescriptionImporter</Importer>
+  <ImporterTime>2015-03-15T23:01:46-04:00</ImporterTime>
+  <Processor>FontDescriptionProcessor</Processor>
+  <ProcessorTime>2015-03-15T23:01:46-04:00</ProcessorTime>
+  <Parameters>
+    <Key>TextureFormat</Key>
+    <Value>Compressed</Value>
+  </Parameters>
+  <Dependencies />
+  <BuildAsset />
+  <BuildOutput />
+</PipelineBuildEvent>

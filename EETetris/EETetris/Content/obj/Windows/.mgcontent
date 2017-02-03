@@ -4,7 +4,8 @@
   <Platform>Windows</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/SirJosh3917/Documents/Visual Studio 2013/Projects/EETetris/EETetris/Content/gui.png</File>
-    <File>C:/Users/SirJosh3917/Documents/Visual Studio 2013/Projects/EETetris/EETetris/Content/blocks.png</File>
+    <File>C:/Users/SirJosh3917/Documents/Visual Studio 2013/Projects/EETetris/EETetris/EETetris/Content/gui.png</File>
+    <File>C:/Users/SirJosh3917/Documents/Visual Studio 2013/Projects/EETetris/EETetris/EETetris/Content/blocks.png</File>
+    <File>C:/Users/SirJosh3917/Documents/Visual Studio 2013/Projects/EETetris/EETetris/EETetris/Content/chat.spritefont</File>
   </SourceFiles>
 </SourceFileCollection>
