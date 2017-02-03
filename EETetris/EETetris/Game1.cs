@@ -29,7 +29,28 @@ namespace EETetris
 		int[,] col;
 		bool canSwitch = true;
 
-		bool graphicBeta = true;
+		private int __grfon = 0;
+		int graphicOn
+		{
+			get
+			{
+				return __grfon;
+			}
+			set
+			{
+				//Set it to the value
+				__grfon = value;
+
+				//Min value
+				if (__grfon < 0) __grfon = 0;
+
+				//Max value ( 0 - 2)
+				if (__grfon > 2) __grfon = 0;
+			}
+		}
+		bool graphicBasic{ get { return graphicOn == 0; } set { } }
+		bool graphicBeta { get { return graphicOn == 1; } set { } }
+		bool graphicTile { get { return graphicOn == 2; } set { } }
 		bool[,] block;
 		bool[,] heldBlock;
 		bool[,,] pieces;
@@ -37,10 +58,17 @@ namespace EETetris
 		int heldBlockCol = 0;
 		int blockCol = 0;
 
-		int counter = 1;
-		int limit = 50;
-		float countDuration = 0.5f;
+		private float _cd = 1.0f;
+		private float _cdt = 0.0f;
+		float speedMultiplier { get { return _cdt; } set { if (value < 0.7f) { _cdt = 0.7f; } } }
+		float countDuration { get {
+			return _cd - speedMultiplier; } set { _cd = value; } }
 		float currentTime = 0f;
+
+		float cD = 0.0f;
+		float cT = 0.0f;
+
+		public int lastScore = 0;
 
 		int __using = 0;
 		int usingPiece { get { return __using; } set { __using = value; SetBlock(value); x = 4; y = 0; } }
@@ -139,9 +167,21 @@ namespace EETetris
 					if (multiplier != 0)
 					{
 						if (multiplier == 1)
+						{
 							score += 100;
+							lastScore += 100;
+						}
 						else
+						{
 							score += 200 * multiplier;
+							lastScore += 200 * multiplier;
+						}
+						
+						if (lastScore > 1000)
+						{
+							lastScore -= 1000;
+							speedMultiplier += 0.2f;// 025f;
+						}
 					}
 
 					looking = false;
@@ -231,11 +271,15 @@ namespace EETetris
 			graphicBeta = true;
 
 			//Clear held
+			cD = 0.0f;
+			cT = 0.0f;
+			lastScore = 0;
+			_cdt = 0.0f;
 			heldBlockCol = 0;
 			heldBlock = null;
-			counter = 1;
-			limit = 50;
-			countDuration = 0.5f;
+			_cd = 1.0f;
+			_cdt = 0.0f;
+			countDuration = 1.0f;
 			currentTime = 0f;
 			held = 0;
 			__using = 0;
@@ -461,9 +505,9 @@ namespace EETetris
 			Texture2D blockUse = Content.Load<Texture2D>("blocks");
 
 			//Snip out the specific amount of required blocks
-			blocks = new Texture2D[16];
+			blocks = new Texture2D[24];
 
-			for (int y = 0; y < 2; y++)
+			for (int y = 0; y < 3; y++)
 				for (int x = 0; x < 8; x++)
 					blocks[x + (y * 8)] = GetSnip(x * 16, y * 16, 16, 16, blockUse);
 
@@ -504,37 +548,12 @@ namespace EETetris
 			}
 			 */
 
-			#region Switch between BETA and BASIC
+			#region Switch between block sets
 			if (Hotkeys.HandleKeyPress(Hotkeys.BetaBasic(k), 0))
 			{
-				//Switch everything by 8 to get basic/beta
-				if (graphicBeta)
-				{
-					heldBlockCol += 8;
-					blockCol += 8;
-				}
-				else
-				{
-					heldBlockCol -= 8;
-					blockCol -= 8;
-				}
 
-				for (int i = 0; i < cols.Length; i++)
-				{
-					if (graphicBeta)
-						cols[i] = cols[i] + 8;
-					else
-						cols[i] = cols[i] - 8;
-				}
+				graphicOn++;
 
-				for (int i = 0; i < col.GetLength(0); i++)
-					for (int s = 0; s < col.GetLength(1); s++)
-						if (graphicBeta)
-							col[i, s] = col[i, s] + 8;
-						else
-							col[i, s] = col[i, s] - 8;
-
-				graphicBeta = !graphicBeta;
 			}
 			#endregion
 
@@ -605,10 +624,11 @@ namespace EETetris
 			}
 
 			currentTime += (float)gameTime.ElapsedGameTime.TotalSeconds; //Time passed since last Update()
+			cT += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 			if (currentTime >= countDuration)
 			{
-				currentTime = 0;
+				currentTime = 0.0f;
 				IncreaseY();
 			}
 
@@ -632,7 +652,7 @@ namespace EETetris
 
 			spriteBatch.Draw(gui, gui_rect, Color.White);
 
-
+			int modifier = (graphicOn* 8);
 
 			//Shadows before actual blocks
 			if (shadows)
@@ -675,20 +695,20 @@ namespace EETetris
 				for (int i = 0; i < block.GetLength(0); i++)
 					for (int s = 0; s < block.GetLength(1); s++)
 						if (block[i, s])
-							spriteBatch.Draw(blocks[(graphicBeta ? 7 : 15)], new Rectangle(((x + i) * 16) + 16, ((ampy + s) * 16) + 16, 16, 16), Color.White);
+							spriteBatch.Draw(blocks[modifier + 7], new Rectangle(((x + i) * 16) + 16, ((ampy + s) * 16) + 16, 16, 16), Color.White);
 			}
 
 			for (int i = 0; i < block.GetLength(0); i++)
 				for (int s = 0; s < block.GetLength(1); s++)
 					if (block[i, s])
-						spriteBatch.Draw(blocks[blockCol], new Rectangle(((x + i) * 16) + 16, ((y + s) * 16) + 16, 16, 16), Color.White);
+						spriteBatch.Draw(blocks[modifier + blockCol], new Rectangle(((x + i) * 16) + 16, ((y + s) * 16) + 16, 16, 16), Color.White);
 			
 			for (int i = 0; i < screen.GetLength(0); i++ )
 				for (int s = 0; s < screen.GetLength(1); s++)
 				{
 					if (screen[i, s])
 					{
-						spriteBatch.Draw(blocks[col[i, s]], new Rectangle((i * 16) + 16, (s * 16) + 16, 16, 16), Color.White);
+						spriteBatch.Draw(blocks[modifier + col[i, s]], new Rectangle((i * 16) + 16, (s * 16) + 16, 16, 16), Color.White);
 					}
 				}
 
@@ -697,7 +717,7 @@ namespace EETetris
 			for (int i = 0; i < heldBlock.GetLength(0); i++)
 				for (int s = 0; s < heldBlock.GetLength(1); s++)
 					if (heldBlock[i, s])
-						spriteBatch.Draw(blocks[heldBlockCol], new Rectangle((i * 16) + (16 * 13), (s * 16) + (16 * 16), 16, 16), Color.White);
+						spriteBatch.Draw(blocks[modifier + heldBlockCol], new Rectangle((i * 16) + (16 * 13), (s * 16) + (16 * 16), 16, 16), Color.White);
 
 			spriteBatch.DrawString(text, score.ToString(), new Vector2(12 * 16, (13 * 16) - 2), Color.White);
 
