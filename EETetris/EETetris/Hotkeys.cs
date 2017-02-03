@@ -12,7 +12,7 @@ namespace EETetris
 		public static void Init()
 		{
 			ks = new KeySetup();
-			keys = new bool[8];
+			keys = new bool[9];
 
 			for (int i = 0; i < keys.Length; i++)
 				keys[i] = true;
@@ -28,6 +28,8 @@ namespace EETetris
 		public static bool FastDrop(KeyboardState n) { return IsInUse(ks.FastDrop, n); }
 		public static bool RotateLeft(KeyboardState n) { return IsInUse(ks.RotateLeft, n); }
 		public static bool RotateRight(KeyboardState n) { return IsInUse(ks.RotateRight, n); }
+		public static bool Shadows(KeyboardState n) { return IsInUse(ks.Shadows, n); }
+
 		public static void AddScore(int s)
 		{
 			ks.Scores.Add(s);
@@ -77,6 +79,8 @@ namespace EETetris
 
 			Scores = new System.Collections.Generic.List<int>();
 
+			Shadows = new System.Collections.Generic.List<Keys>();
+
 			if(reset)
 			if (!System.IO.File.Exists("setup.json"))
 			{
@@ -95,6 +99,8 @@ namespace EETetris
 
 				RotateLeft.Add(Keys.Q);
 				RotateRight.Add(Keys.E);
+
+				Shadows.Add(Keys.O);
 
 				Save();
 			}
@@ -115,6 +121,7 @@ namespace EETetris
 		public System.Collections.Generic.List<Keys> FastDrop;
 		public System.Collections.Generic.List<Keys> RotateLeft;
 		public System.Collections.Generic.List<Keys> RotateRight;
+		public System.Collections.Generic.List<Keys> Shadows;
 
 		public void Save()
 		{
@@ -140,6 +147,8 @@ namespace EETetris
 
 			this.Scores = get.Scores;
 			this.BestScore = get.BestScore;
+
+			this.Shadows = get.Shadows;
 		}
 	}
 }

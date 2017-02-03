@@ -21,6 +21,8 @@ namespace EETetris
 		int x;
 		int y;
 
+		bool shadows = false;
+
 		int score = 0;
 
 		bool[,] screen;
@@ -225,6 +227,18 @@ namespace EETetris
 			r = new System.Random();
 			r.Next(0, 1000);
 			#endregion
+
+			graphicBeta = true;
+
+			//Clear held
+			heldBlockCol = 0;
+			heldBlock = null;
+			counter = 1;
+			limit = 50;
+			countDuration = 0.5f;
+			currentTime = 0f;
+			held = 0;
+			__using = 0;
 
 			score = 0;
 
@@ -543,6 +557,11 @@ namespace EETetris
 				SwitchHeld();
 			#endregion
 
+			if (Hotkeys.HandleKeyPress(Hotkeys.Shadows(k), 8))
+			{
+				shadows = !shadows;
+			}
+
 			if (Hotkeys.HandleKeyPress(Hotkeys.TetrisRight(k), 5))
 			{
 				bool go = true;
@@ -612,6 +631,53 @@ namespace EETetris
 			spriteBatch.Begin();
 
 			spriteBatch.Draw(gui, gui_rect, Color.White);
+
+
+
+			//Shadows before actual blocks
+			if (shadows)
+			{
+				int ampy = y;
+				bool hitGround = false;
+				int minusBonus = 0;
+				while (!hitGround)
+				{
+					ampy++;
+
+					if (ampy == 20)
+						hitGround = true;
+					else
+					{
+						for (int i = 0; i < block.GetLength(0); i++)
+							for (int s = 0; s < block.GetLength(1); s++)
+								if(block[i, s])
+								if (ampy + s >= 20 || x + i >= 9)
+								{
+									while ((ampy + s) - minusBonus >= 20)
+									{
+										minusBonus++;
+									}
+									//hitGround = true;
+								}
+								else if (screen[x + i, ampy + s])
+								{
+									hitGround = true;
+								}
+					}
+				}
+
+				if (ampy == 20)
+					ampy -= minusBonus + 1;
+				else
+					ampy--;
+
+
+				for (int i = 0; i < block.GetLength(0); i++)
+					for (int s = 0; s < block.GetLength(1); s++)
+						if (block[i, s])
+							spriteBatch.Draw(blocks[(graphicBeta ? 7 : 15)], new Rectangle(((x + i) * 16) + 16, ((ampy + s) * 16) + 16, 16, 16), Color.White);
+			}
+
 			for (int i = 0; i < block.GetLength(0); i++)
 				for (int s = 0; s < block.GetLength(1); s++)
 					if (block[i, s])
